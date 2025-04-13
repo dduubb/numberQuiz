@@ -19,7 +19,7 @@ button {
   text-align: center;
   font-size: 3rem; /* Use rem for consistent scaling across devices */
   font-weight: bold;
-  margin: 20px 0; /* Add spacing around the question */
+  margin: 10px 0; /* Add spacing around the question */
 }
 #feedback {
   position: fixed;
