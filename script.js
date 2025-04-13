@@ -336,6 +336,21 @@ class QuizGame {
       <button id="restart-btn">Play Again</button>
     `;
 
+    // Add a reset button to clear cookies and reset high scores
+    this.resultDiv.innerHTML += `
+      <button id="reset-btn">Reset High Scores</button>
+    `;
+
+    // Bind the reset button to clear cookies
+    document.getElementById("reset-btn").addEventListener("click", () => {
+      document.cookie = "highScore=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
+      document.cookie = "highScoreName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
+      document.cookie = "fastestAvgTime=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
+      document.cookie = "fastestAvgTimeName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
+      alert("High scores have been reset!");
+      location.reload(); // Reload the page to reflect the reset
+    });
+
     // Rebind the restart button
     document.getElementById("restart-btn").addEventListener("click", () => {
       this.startQuiz(this.selectedQuestionCount || 10);

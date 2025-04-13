@@ -177,3 +177,18 @@ button#restart-btn {
 button#restart-btn:hover {
   background-color: #0056b3;
 }
+
+button#reset-btn {
+  margin-top: 10px;
+  padding: 10px 20px;
+  font-size: 1em;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button#reset-btn:hover {
+  background-color: #c82333;
+}
