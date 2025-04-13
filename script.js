@@ -343,16 +343,37 @@ class QuizGame {
     resetButton.style.display = "block"; // Ensure it is displayed
     this.resultDiv.appendChild(resetButton);
 
-    // Bind the reset button to clear cookies with confirmation
+    // Add a custom modal for reset confirmation
+    const modal = document.createElement("div");
+    modal.id = "reset-modal";
+    modal.style.display = "none";
+    modal.innerHTML = `
+      <div class="modal-content">
+        <p>Are you sure you want to reset all high scores? This action cannot be undone.</p>
+        <button id="confirm-reset">Yes</button>
+        <button id="cancel-reset">No</button>
+      </div>
+    `;
+    document.body.appendChild(modal);
+
+    // Show the modal when reset button is clicked
     resetButton.addEventListener("click", () => {
-      if (confirm("Are you sure you want to reset all high scores? This action cannot be undone.")) {
-        document.cookie = "highScore=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
-        document.cookie = "highScoreName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
-        document.cookie = "fastestAvgTime=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
-        document.cookie = "fastestAvgTimeName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
-        alert("High scores have been reset!");
-        location.reload(); // Reload the page to reflect the reset
-      }
+      modal.style.display = "block";
+    });
+
+    // Handle modal actions
+    document.getElementById("confirm-reset").addEventListener("click", () => {
+      document.cookie = "highScore=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
+      document.cookie = "highScoreName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
+      document.cookie = "fastestAvgTime=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
+      document.cookie = "fastestAvgTimeName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
+      alert("High scores have been reset!");
+      modal.style.display = "none";
+      location.reload();
+    });
+
+    document.getElementById("cancel-reset").addEventListener("click", () => {
+      modal.style.display = "none";
     });
 
     // Rebind the restart button
