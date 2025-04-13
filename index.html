@@ -18,10 +18,12 @@
       You have 3 seconds per question;
       if you don't hit submit in time, your current answer is auto-submitted.
     </p>
-    <label for="question-count">Questions (1–52):</label>
-    <input id="question-count" type="number" min="1" max="52" value="26" />
-    <br/>
-    <button id="start-btn">Start</button>
+    <div class="button-grid">
+      <button class="question-btn" data-count="5">5 Questions</button>
+      <button class="question-btn" data-count="10">10 Questions</button>
+      <button class="question-btn" data-count="26">26 Questions</button>
+      <button class="question-btn" data-count="52">52 Questions</button>
+    </div>
   </div>
 
   <!-- Quiz Container -->
@@ -44,6 +46,8 @@
     <p id="time-taken"></p>
     <button id="restart-btn">Restart</button>
   </div>
+
+  <input id="question-count" type="hidden" value="0">
 
   <script>
     document.addEventListener("DOMContentLoaded", function () {
@@ -98,6 +102,16 @@
       let questionTimeout;
       let timerInterval;
       const timerDuration = 3000; // 3 seconds per question
+
+      // Add event listeners to the question buttons
+      const questionButtons = document.querySelectorAll(".question-btn");
+      questionButtons.forEach(button => {
+        button.addEventListener("click", function () {
+          const count = parseInt(button.getAttribute("data-count"), 10);
+          questionCountInput.value = count;
+          startQuiz();
+        });
+      });
 
       function submitAnswer(autoSubmitted) {
         const q = quizQuestions[currentQuestionIndex];
@@ -210,8 +224,24 @@
         showQuestion();
       }
 
-      startBtn.addEventListener("click", startQuiz);
-      restartBtn.addEventListener("click", startQuiz);
+      document.addEventListener("DOMContentLoaded", function () {
+        const startBtn = document.getElementById("start-btn");
+        const restartBtn = document.getElementById("restart-btn");
+
+        if (startBtn) {
+          startBtn.addEventListener("click", startQuiz);
+        }
+
+        if (restartBtn) {
+          restartBtn.addEventListener("click", function () {
+            startScreen.classList.remove("hidden");
+            resultDiv.classList.add("hidden");
+            quizContainer.classList.add("hidden");
+            feedbackDiv.textContent = "";
+            questionCountInput.value = "0";
+          });
+        }
+      });
     });
   </script>
 </body>

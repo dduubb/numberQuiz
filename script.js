@@ -49,6 +49,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function submitAnswer(autoSubmitted) {
     const q = quizQuestions[currentQuestionIndex];
+    if (!q) {
+      console.error("Question is undefined. Current index:", currentQuestionIndex);
+      return;
+    }
     const userAnswer = answerInput.value.trim();
     clearTimeout(questionTimeout);
     clearInterval(timerInterval);
@@ -91,21 +95,23 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function startTimer() {
-    timerBar.style.width = "100%";
-    const timerStart = Date.now();
     clearTimeout(questionTimeout);
     clearInterval(timerInterval);
 
-    timerInterval = setInterval(() => {
-      let elapsed = Date.now() - timerStart;
-      let remaining = timerDuration - elapsed;
-      if (remaining < 0) remaining = 0;
-      timerBar.style.width = (remaining / timerDuration * 100) + "%";
-    }, 50);
+    const timerStart = Date.now();
+    const updateInterval = 50; // Update the progress bar every 50ms
+    const timerEnd = timerStart + timerDuration;
 
-    questionTimeout = setTimeout(() => {
-      submitAnswer(true);
-    }, timerDuration);
+    timerInterval = setInterval(() => {
+      const now = Date.now();
+      const remaining = Math.max(0, timerEnd - now);
+      timerBar.style.width = (remaining / timerDuration) * 100 + "%";
+
+      if (remaining === 0) {
+        clearInterval(timerInterval);
+        submitAnswer(true); // Auto-submit when time runs out
+      }
+    }, updateInterval);
   }
 
   function showQuestion() {
@@ -142,8 +148,7 @@ document.addEventListener("DOMContentLoaded", function () {
                              "<br>Average per question: " + avgTime.toFixed(2) + " seconds.";
   }
 
-  function startQuiz() {
-    let count = parseInt(questionCountInput.value, 10);
+  function startQuiz(count) {
     if (isNaN(count) || count < 1) count = 1;
     if (count > allQuestions.length) count = allQuestions.length;
     shuffle(allQuestions);
@@ -157,6 +162,26 @@ document.addEventListener("DOMContentLoaded", function () {
     showQuestion();
   }
 
-  startBtn.addEventListener("click", startQuiz);
-  restartBtn.addEventListener("click", startQuiz);
+  if (startBtn) {
+    startBtn.addEventListener("click", function () {
+      const defaultCount = 10; // Default number of questions for start
+      startQuiz(defaultCount);
+    });
+  }
+
+  if (restartBtn) {
+    restartBtn.addEventListener("click", function () {
+      const defaultCount = 10; // Default number of questions for restart
+      startQuiz(defaultCount);
+    });
+  }
+
+  // Update the event listener to pass the correct count parameter
+  const questionButtons = document.querySelectorAll(".question-btn");
+  questionButtons.forEach(button => {
+    button.addEventListener("click", function () {
+      const count = parseInt(button.getAttribute("data-count"), 10);
+      startQuiz(count); // Pass the count parameter to startQuiz
+    });
+  });
 });
