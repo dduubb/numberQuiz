@@ -68,7 +68,7 @@ class QuizGame {
     // Reset all game state variables
     this.quizQuestions = this.generateQuestions();
     this.shuffle(this.quizQuestions);
-    this.quizQuestions = count === -1 ? this.quizQuestions : this.quizQuestions; // No limit on questions
+    this.quizQuestions = count === -1 ? this.quizQuestions : this.quizQuestions.slice(0, count); // Limit questions for normal modes
     this.currentQuestionIndex = 0;
     this.feedbackDiv.textContent = "";
     this.startTime = new Date();
@@ -116,6 +116,11 @@ class QuizGame {
 
   showQuestion() {
     this.hasAnswered = false; // Reset flag for the new question
+
+    if (!this.isTournamentMode && this.currentQuestionIndex >= this.quizQuestions.length) {
+      this.endQuiz(); // End the game if the question limit is reached in normal modes
+      return;
+    }
 
     if (this.isTournamentMode && this.currentQuestionIndex >= this.quizQuestions.length) {
       // Dynamically generate a new question in Tournament Mode
