@@ -277,50 +277,63 @@ class QuizGame {
 
     const endTime = new Date();
     const timeDiff = (endTime - this.startTime) / 1000;
-    const avgTime = timeDiff / this.quizQuestions.length;
+    const avgTime = timeDiff / this.currentQuestionIndex; // Average time based on correct answers
 
     // Calculate correct answers
     const correctAnswers = this.currentQuestionIndex;
 
-    // Retrieve high score from cookies
+    // Retrieve high scores and names from cookies
     const highScore = parseInt(document.cookie.replace(/(?:(?:^|.*;\s*)highScore\s*\=\s*([^;]*).*$)|^.*$/, "$1")) || 0;
-
-    // Prompt user for name if a new high score is set
     let highScoreName = document.cookie.replace(/(?:(?:^|.*;\s*)highScoreName\s*\=\s*([^;]*).*$)|^.*$/, "$1") || "Anonymous";
-    if (correctAnswers > highScore) {
-      highScoreName = prompt("New High Score! Enter your name:", highScoreName) || "Anonymous";
-      document.cookie = `highScoreName=${highScoreName}; expires=Fri, 31 Dec 9999 23:59:59 GMT; path=/`;
-    }
-
-    // Update high score if necessary
-    if (correctAnswers > highScore) {
-      document.cookie = `highScore=${correctAnswers}; expires=Fri, 31 Dec 9999 23:59:59 GMT; path=/`;
-    }
-
-    // Retrieve high score for fastest average time from cookies
+    let fastestAvgTimeName = document.cookie.replace(/(?:(?:^|.*;\s*)fastestAvgTime\s*\=\s*([^;]*).*$)|^.*$/, "$1") || "Anonymous";
     const fastestAvgTime = parseFloat(document.cookie.replace(/(?:(?:^|.*;\s*)fastestAvgTime\s*\=\s*([^;]*).*$)|^.*$/, "$1")) || Infinity;
 
-    // Update fastest average time if necessary
+    let newHighScore = false;
+    let newFastestTime = false;
+
+    // Update high scores and names if necessary
+    if (correctAnswers > highScore) {
+      newHighScore = true;
+      const name = prompt("New Iron Man high score! Enter your name:", "Anonymous");
+      document.cookie = `highScore=${correctAnswers}; expires=Fri, 31 Dec 9999 23:59:59 GMT; path=/`;
+      document.cookie = `highScoreName=${name}; expires=Fri, 31 Dec 9999 23:59:59 GMT; path=/`;
+      highScoreName = name; // Update the displayed high score name
+    }
     if (avgTime < fastestAvgTime) {
+      newFastestTime = true;
+      const name = prompt("New Speed Demon record! Enter your name:", "Anonymous");
       document.cookie = `fastestAvgTime=${avgTime}; expires=Fri, 31 Dec 9999 23:59:59 GMT; path=/`;
+      document.cookie = `fastestAvgTimeName=${name}; expires=Fri, 31 Dec 9999 23:59:59 GMT; path=/`;
+      fastestAvgTimeName = name; // Update the displayed fastest average time name
     }
 
-    // Retrieve most answered questions from cookies
-    const mostAnswered = parseInt(document.cookie.replace(/(?:(?:^|.*;\s*)mostAnswered\s*\=\s*([^;]*).*$)|^.*$/, "$1")) || 0;
+    // Highlight the high score if the current score is a new high score
+    const isNewHighScore = correctAnswers > highScore;
+    const isNewFastestTime = avgTime < fastestAvgTime;
 
-    // Update most answered questions if necessary
-    if (correctAnswers > mostAnswered) {
-      document.cookie = `mostAnswered=${correctAnswers}; expires=Fri, 31 Dec 9999 23:59:59 GMT; path=/`;
-    }
-
-    this.timeTakenP.innerHTML = `
-      Completed in ${timeDiff.toFixed(2)} seconds<br>
-      Average per question: ${avgTime.toFixed(2)} seconds.<br>
-      Correct answers: ${correctAnswers}<br>
-      High score: ${Math.max(correctAnswers, highScore)} by ${highScoreName}<br>
-      Fastest average time: ${Math.min(avgTime, fastestAvgTime).toFixed(2)} seconds<br>
-      Most answered questions: ${Math.max(correctAnswers, mostAnswered)}
+    // Update the results grid with the latest high scores
+    this.resultDiv.innerHTML = `
+      <h2>Results</h2>
+      <div class="results-grid">
+        <div class="results-section">
+          <h3>Latest Game</h3>
+          <p>Completed in: ${timeDiff.toFixed(2)} seconds</p>
+          <p>Average per question: ${avgTime.toFixed(2)} seconds</p>
+          <p>Correct answers: ${correctAnswers}</p>
+        </div>
+        <div class="results-section">
+          <h3>High Scores</h3>
+          <p><strong>Speed Demon:</strong> ${newFastestTime ? avgTime.toFixed(2) : fastestAvgTime.toFixed(2)} seconds by ${newFastestTime ? fastestAvgTimeName : document.cookie.replace(/(?:(?:^|.*;\s*)fastestAvgTimeName\s*\=\s*([^;]*).*$)|^.*$/, "$1") || "Anonymous"} ${newFastestTime ? '<span class="highlight">(New!)</span>' : ''}</p>
+          <p><strong>Iron Man:</strong> ${newHighScore ? correctAnswers : highScore} correct answers by ${newHighScore ? highScoreName : document.cookie.replace(/(?:(?:^|.*;\s*)highScoreName\s*\=\s*([^;]*).*$)|^.*$/, "$1") || "Anonymous"} ${newHighScore ? '<span class="highlight">(New!)</span>' : ''}</p>
+        </div>
+      </div>
+      <button id="restart-btn">Play Again</button>
     `;
+
+    // Rebind the restart button
+    document.getElementById("restart-btn").addEventListener("click", () => {
+      this.startQuiz(this.selectedQuestionCount || 10);
+    });
   }
 }
 
