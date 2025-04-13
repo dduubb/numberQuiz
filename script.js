@@ -221,6 +221,12 @@ class QuizGame {
         }
       }, 800);
     }
+
+    // Adjust total time for incorrect answers by adding a penalty
+    if (userAnswer !== q.expected) {
+      const penaltyTime = this.currentTimerDuration * 2 / 1000; // Convert milliseconds to seconds
+      this.startTime = new Date(this.startTime.getTime() - penaltyTime * 1000); // Adjust start time to reflect penalty
+    }
   }
 
   startTimer() {
