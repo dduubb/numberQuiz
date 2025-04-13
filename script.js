@@ -336,13 +336,15 @@ class QuizGame {
       <button id="restart-btn">Play Again</button>
     `;
 
-    // Add a reset button to clear cookies and reset high scores
-    this.resultDiv.innerHTML += `
-      <button id="reset-btn">Reset High Scores</button>
-    `;
+    // Ensure the reset button is added to the DOM and visible
+    const resetButton = document.createElement("button");
+    resetButton.id = "reset-btn";
+    resetButton.textContent = "Reset High Scores";
+    resetButton.style.display = "block"; // Ensure it is displayed
+    this.resultDiv.appendChild(resetButton);
 
     // Bind the reset button to clear cookies
-    document.getElementById("reset-btn").addEventListener("click", () => {
+    resetButton.addEventListener("click", () => {
       document.cookie = "highScore=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
       document.cookie = "highScoreName=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
       document.cookie = "fastestAvgTime=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
