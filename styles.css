@@ -113,9 +113,10 @@ button {
 
 .option-btn {
   width: 100%;
-  height: 100%; /* Fill the available space */
+  height: auto; /* Allow height to adjust dynamically */
+  aspect-ratio: 1 / 1; /* Make buttons practically square */
   font-size: 1.5em;
-  padding: 0; /* Remove extra padding */
+  padding: 10px; /* Add top and bottom padding */
   box-sizing: border-box;
   background-color: #28a745;
   color: white;
