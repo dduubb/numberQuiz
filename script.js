@@ -285,16 +285,41 @@ class QuizGame {
     // Retrieve high score from cookies
     const highScore = parseInt(document.cookie.replace(/(?:(?:^|.*;\s*)highScore\s*\=\s*([^;]*).*$)|^.*$/, "$1")) || 0;
 
+    // Prompt user for name if a new high score is set
+    let highScoreName = document.cookie.replace(/(?:(?:^|.*;\s*)highScoreName\s*\=\s*([^;]*).*$)|^.*$/, "$1") || "Anonymous";
+    if (correctAnswers > highScore) {
+      highScoreName = prompt("New High Score! Enter your name:", highScoreName) || "Anonymous";
+      document.cookie = `highScoreName=${highScoreName}; expires=Fri, 31 Dec 9999 23:59:59 GMT; path=/`;
+    }
+
     // Update high score if necessary
     if (correctAnswers > highScore) {
       document.cookie = `highScore=${correctAnswers}; expires=Fri, 31 Dec 9999 23:59:59 GMT; path=/`;
+    }
+
+    // Retrieve high score for fastest average time from cookies
+    const fastestAvgTime = parseFloat(document.cookie.replace(/(?:(?:^|.*;\s*)fastestAvgTime\s*\=\s*([^;]*).*$)|^.*$/, "$1")) || Infinity;
+
+    // Update fastest average time if necessary
+    if (avgTime < fastestAvgTime) {
+      document.cookie = `fastestAvgTime=${avgTime}; expires=Fri, 31 Dec 9999 23:59:59 GMT; path=/`;
+    }
+
+    // Retrieve most answered questions from cookies
+    const mostAnswered = parseInt(document.cookie.replace(/(?:(?:^|.*;\s*)mostAnswered\s*\=\s*([^;]*).*$)|^.*$/, "$1")) || 0;
+
+    // Update most answered questions if necessary
+    if (correctAnswers > mostAnswered) {
+      document.cookie = `mostAnswered=${correctAnswers}; expires=Fri, 31 Dec 9999 23:59:59 GMT; path=/`;
     }
 
     this.timeTakenP.innerHTML = `
       Completed in ${timeDiff.toFixed(2)} seconds<br>
       Average per question: ${avgTime.toFixed(2)} seconds.<br>
       Correct answers: ${correctAnswers}<br>
-      High score: ${Math.max(correctAnswers, highScore)}
+      High score: ${Math.max(correctAnswers, highScore)} by ${highScoreName}<br>
+      Fastest average time: ${Math.min(avgTime, fastestAvgTime).toFixed(2)} seconds<br>
+      Most answered questions: ${Math.max(correctAnswers, mostAnswered)}
     `;
   }
 }
