@@ -17,9 +17,25 @@ button {
   margin-bottom: 15px;
 }
 #feedback {
-  margin-top: 10px;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  font-size: 2em;
   font-weight: bold;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  z-index: 1000;
+  display: none; /* Hidden by default */
 }
+
+#feedback.show {
+  display: block; /* Show feedback when the 'show' class is added */
+}
+
 /* Timer Bar Styles */
 #timer-container {
   width: 100%;
@@ -37,6 +53,15 @@ button {
 #start-screen {
   text-align: center;
   margin-top: 50px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh; /* Ensure the start screen fits within the viewport */
+  overflow: hidden; /* Prevent scrolling */
+}
+#start-screen.hidden {
+  display: none; /* Ensure the start screen is completely hidden when the class 'hidden' is added */
 }
 #start-screen label {
   margin-right: 10px;
@@ -48,18 +73,16 @@ button {
 
 .button-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, 1fr); /* Two buttons per row */
   gap: 10px;
-  height: 100vh;
-  align-items: center;
-  justify-items: center;
+  height: 100%; /* Fill the available height */
 }
 
 .question-btn {
   width: 100%;
-  height: 100%;
+  height: 100%; /* Fill the available space */
   font-size: 1.5em;
-  padding: 20px;
+  padding: 0; /* Remove extra padding */
   box-sizing: border-box;
   background-color: #007BFF;
   color: white;
@@ -71,4 +94,35 @@ button {
 
 .question-btn:hover {
   background-color: #0056b3;
+}
+
+.button-grid button {
+  height: auto; /* Adjust height to fit content */
+  padding: 10px 20px; /* Add padding for better appearance */
+  font-size: 1rem; /* Adjust font size for readability */
+}
+
+.options-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* Two buttons per row */
+  gap: 10px;
+  height: 100%; /* Fill the available height */
+}
+
+.option-btn {
+  width: 100%;
+  height: 100%; /* Fill the available space */
+  font-size: 1.5em;
+  padding: 0; /* Remove extra padding */
+  box-sizing: border-box;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.option-btn:hover {
+  background-color: #218838;
 }

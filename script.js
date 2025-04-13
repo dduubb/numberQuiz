@@ -63,16 +63,18 @@ class QuizGame {
   }
 
   startQuiz(count) {
-    console.log("Starting quiz with", count, "questions."); // Debugging log
+    console.log("Starting quiz with", count === -1 ? "Tournament Mode" : count + " questions."); // Debugging log
 
     // Reset all game state variables
     this.quizQuestions = this.generateQuestions();
     this.shuffle(this.quizQuestions);
-    this.quizQuestions = this.quizQuestions.slice(0, count);
+    this.quizQuestions = count === -1 ? this.quizQuestions : this.quizQuestions; // No limit on questions
     this.currentQuestionIndex = 0;
     this.feedbackDiv.textContent = "";
     this.startTime = new Date();
     this.hasAnswered = false; // Ensure the answered flag is reset
+    this.isTournamentMode = count === -1; // Track if Tournament Mode is active
+    this.currentTimerDuration = this.timerDuration; // Initialize the timer duration
 
     // Clear any lingering timers from a previous game
     if (this.questionTimeout) {
@@ -91,7 +93,7 @@ class QuizGame {
     });
 
     // Update UI for a new game
-    this.startScreen.classList.add("hidden");
+    this.startScreen.classList.add("hidden"); // Ensure the start screen is hidden during gameplay
     this.resultDiv.classList.add("hidden");
     this.quizContainer.classList.remove("hidden");
 
@@ -99,19 +101,32 @@ class QuizGame {
     this.showQuestion();
   }
 
+  generateNextQuestion() {
+    const letterIndex = Math.floor(Math.random() * this.alphabet.length);
+    const letter = this.alphabet[letterIndex];
+    const number = (letterIndex + 1).toString();
+
+    // Alternate between letter-to-number and number-to-letter questions
+    if (Math.random() > 0.5) {
+      return { prompt: letter, expected: number, mode: "number" };
+    } else {
+      return { prompt: number, expected: letter, mode: "text" };
+    }
+  }
+
   showQuestion() {
     this.hasAnswered = false; // Reset flag for the new question
 
-    if (this.currentQuestionIndex >= this.quizQuestions.length) {
-      this.endQuiz();
-      return;
+    if (this.isTournamentMode && this.currentQuestionIndex >= this.quizQuestions.length) {
+      // Dynamically generate a new question in Tournament Mode
+      this.quizQuestions.push(this.generateNextQuestion());
     }
 
     const q = this.quizQuestions[this.currentQuestionIndex];
     console.log("Displaying question index:", this.currentQuestionIndex); // Debugging log
 
     this.questionArea.innerHTML = 
-      `<h2>Question ${this.currentQuestionIndex + 1} of ${this.quizQuestions.length}</h2>
+      `<h2>Question ${this.currentQuestionIndex + 1}</h2>
        <p>${q.prompt}</p>`;
 
     const options = this.generateOptions(q.expected, q.mode);
@@ -175,21 +190,30 @@ class QuizGame {
       console.log("Answer is correct. Waiting to advance...");
       this.feedbackDiv.textContent = this.positiveMessages[Math.floor(Math.random() * this.positiveMessages.length)];
       this.feedbackDiv.style = this.successStyle;
+      this.feedbackDiv.classList.add("show");
       setTimeout(() => {
+        this.feedbackDiv.classList.remove("show");
         this.feedbackDiv.textContent = "";
         this.currentQuestionIndex++;
+        this.currentTimerDuration = Math.max(1000, this.currentTimerDuration - 100); // Decrease timer duration with a minimum of 1 second
         console.log("Advancing to question index:", this.currentQuestionIndex);
         this.showQuestion();
       }, 300);
     } else {
-      console.log("Answer is incorrect. Waiting to advance...");
+      console.log("Answer is incorrect. Ending game in Tournament Mode...");
       this.feedbackDiv.textContent = `Wrong! The correct answer was: ${q.expected}`;
       this.feedbackDiv.style = this.errorStyle;
+      this.feedbackDiv.classList.add("show");
       setTimeout(() => {
+        this.feedbackDiv.classList.remove("show");
         this.feedbackDiv.textContent = "";
-        this.currentQuestionIndex++;
-        console.log("Advancing to question index:", this.currentQuestionIndex);
-        this.showQuestion();
+        if (this.isTournamentMode) {
+          this.endQuiz(); // End the game immediately in Tournament Mode
+        } else {
+          this.currentQuestionIndex++;
+          console.log("Advancing to question index:", this.currentQuestionIndex);
+          this.showQuestion();
+        }
       }, 800);
     }
   }
@@ -205,12 +229,12 @@ class QuizGame {
     }
 
     const timerStart = Date.now();
-    const timerEnd = timerStart + this.timerDuration;
+    const timerEnd = timerStart + this.currentTimerDuration;
 
     this.timerInterval = setInterval(() => {
       const now = Date.now();
       const remaining = Math.max(0, timerEnd - now);
-      this.timerBar.style.width = (remaining / this.timerDuration) * 100 + "%";
+      this.timerBar.style.width = (remaining / this.currentTimerDuration) * 100 + "%";
 
       if (remaining === 0) {
         clearInterval(this.timerInterval);
@@ -227,7 +251,7 @@ class QuizGame {
         this.timerInterval = null;
         this.submitAnswer(null);
       }
-    }, this.timerDuration);
+    }, this.currentTimerDuration);
   }
 
   endQuiz() {
