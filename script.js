@@ -1,187 +1,259 @@
-document.addEventListener("DOMContentLoaded", function () {
-  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
-  const allQuestions = [];
-  for (let i = 0; i < alphabet.length; i++) {
-    const letter = alphabet[i];
-    const number = (i + 1).toString();
-    allQuestions.push({
-      prompt: letter,
-      expected: number,
-      mode: "number"
+class QuizGame {
+  constructor(config) {
+    this.alphabet = config.alphabet.split("");
+    this.positiveMessages = config.positiveMessages;
+    this.errorStyle = config.errorStyle;
+    this.successStyle = config.successStyle;
+    this.timerDuration = config.timerDuration;
+
+    this.quizQuestions = [];
+    this.currentQuestionIndex = 0;
+    this.startTime = null;
+    this.questionTimeout = null;
+    this.timerInterval = null;
+    this.hasAnswered = false;
+    this.selectedQuestionCount = 0; // Ensure this is initialized
+
+    console.log("Initializing QuizGame..."); // Debugging log
+    this.initDOMElements();
+    this.bindEventListeners();
+    console.log("QuizGame initialized."); // Debugging log
+  }
+
+  initDOMElements() {
+    this.startScreen = document.getElementById("start-screen");
+    this.quizContainer = document.getElementById("quiz-container");
+    this.questionArea = document.getElementById("question-area");
+    this.feedbackDiv = document.getElementById("feedback");
+    this.resultDiv = document.getElementById("result");
+    this.timeTakenP = document.getElementById("time-taken");
+    this.timerBar = document.getElementById("timer-bar");
+  }
+
+  bindEventListeners() {
+    document.querySelectorAll(".question-btn").forEach(button => {
+      button.addEventListener("click", () => {
+        const count = parseInt(button.getAttribute("data-count"), 10);
+        this.startQuiz(count);
+        this.selectedQuestionCount = count; // Store the selected question count
+      });
     });
-    allQuestions.push({
-      prompt: number,
-      expected: letter,
-      mode: "text"
+
+    document.getElementById("restart-btn").addEventListener("click", () => {
+      this.startQuiz(this.selectedQuestionCount || 10); // Use the stored count or default to 10
     });
   }
 
-  const positiveMessages = ["Great!", "Awesome!", "You got it!", "Nice job!", "Correct!"];
-  const errorStyle = "color: red;";
-  const successStyle = "color: green;";
+  generateQuestions() {
+    const allQuestions = [];
+    for (let i = 0; i < this.alphabet.length; i++) {
+      const letter = this.alphabet[i];
+      const number = (i + 1).toString();
+      allQuestions.push({ prompt: letter, expected: number, mode: "number" });
+      allQuestions.push({ prompt: number, expected: letter, mode: "text" });
+    }
+    return allQuestions;
+  }
 
-  function shuffle(array) {
+  shuffle(array) {
     for (let i = array.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [array[i], array[j]] = [array[j], array[i]];
     }
   }
 
-  const startScreen = document.getElementById("start-screen");
-  const startBtn = document.getElementById("start-btn");
-  const questionCountInput = document.getElementById("question-count");
-  const quizContainer = document.getElementById("quiz-container");
-  const questionArea = document.getElementById("question-area");
-  const answerForm = document.getElementById("answer-form");
-  const answerInput = document.getElementById("answer-input");
-  const feedbackDiv = document.getElementById("feedback");
-  const resultDiv = document.getElementById("result");
-  const timeTakenP = document.getElementById("time-taken");
-  const restartBtn = document.getElementById("restart-btn");
-  const timerBar = document.getElementById("timer-bar");
+  startQuiz(count) {
+    console.log("Starting quiz with", count, "questions."); // Debugging log
 
-  let quizQuestions = [];
-  let currentQuestionIndex = 0;
-  let startTime;
-  let questionTimeout;
-  let timerInterval;
-  const timerDuration = 3000;
+    // Reset all game state variables
+    this.quizQuestions = this.generateQuestions();
+    this.shuffle(this.quizQuestions);
+    this.quizQuestions = this.quizQuestions.slice(0, count);
+    this.currentQuestionIndex = 0;
+    this.feedbackDiv.textContent = "";
+    this.startTime = new Date();
+    this.hasAnswered = false; // Ensure the answered flag is reset
 
-  function submitAnswer(autoSubmitted) {
-    const q = quizQuestions[currentQuestionIndex];
-    if (!q) {
-      console.error("Question is undefined. Current index:", currentQuestionIndex);
+    // Clear any lingering timers from a previous game
+    if (this.questionTimeout) {
+      clearTimeout(this.questionTimeout);
+      this.questionTimeout = null;
+    }
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+      this.timerInterval = null;
+    }
+
+    // Remove any existing event listeners to prevent duplicates
+    const optionButtons = this.questionArea.querySelectorAll(".option-btn");
+    optionButtons.forEach(button => {
+      button.replaceWith(button.cloneNode(true));
+    });
+
+    // Update UI for a new game
+    this.startScreen.classList.add("hidden");
+    this.resultDiv.classList.add("hidden");
+    this.quizContainer.classList.remove("hidden");
+
+    console.log("Game state reset. Starting first question."); // Debugging log
+    this.showQuestion();
+  }
+
+  showQuestion() {
+    this.hasAnswered = false; // Reset flag for the new question
+
+    if (this.currentQuestionIndex >= this.quizQuestions.length) {
+      this.endQuiz();
       return;
     }
-    const userAnswer = answerInput.value.trim();
-    clearTimeout(questionTimeout);
-    clearInterval(timerInterval);
 
-    if (autoSubmitted) {
-      answerInput.disabled = true;
-      if ((q.mode === "text" && userAnswer.toUpperCase() === q.expected.toUpperCase()) ||
-          (q.mode === "number" && userAnswer === q.expected)) {
-        feedbackDiv.textContent = positiveMessages[Math.floor(Math.random() * positiveMessages.length)];
-        feedbackDiv.style = successStyle;
-        setTimeout(() => {
-          feedbackDiv.textContent = "";
-          currentQuestionIndex++;
-          showQuestion();
-        }, 300);
+    const q = this.quizQuestions[this.currentQuestionIndex];
+    console.log("Displaying question index:", this.currentQuestionIndex); // Debugging log
+
+    this.questionArea.innerHTML = 
+      `<h2>Question ${this.currentQuestionIndex + 1} of ${this.quizQuestions.length}</h2>
+       <p>${q.prompt}</p>`;
+
+    const options = this.generateOptions(q.expected, q.mode);
+    const optionsHtml = options.map(option => 
+      `<button class="option-btn" data-value="${option}">${option}</button>`
+    ).join(" ");
+
+    this.questionArea.innerHTML += `<div class="options-container">${optionsHtml}</div>`;
+
+    // Remove any existing event listeners to prevent duplicates
+    const optionButtons = this.questionArea.querySelectorAll(".option-btn");
+    optionButtons.forEach(button => {
+      button.replaceWith(button.cloneNode(true)); // Replace button to clear existing listeners
+    });
+
+    // Attach new event listeners
+    this.questionArea.querySelectorAll(".option-btn").forEach(button => {
+      button.addEventListener("click", (event) => {
+        const selectedValue = event.target.getAttribute("data-value");
+        console.log("Option selected:", selectedValue); // Debugging log
+        this.submitAnswer(selectedValue);
+      });
+    });
+
+    this.startTimer();
+  }
+
+  generateOptions(correctAnswer, mode) {
+    const options = new Set([correctAnswer]);
+    while (options.size < 6) {
+      if (mode === "number") {
+        const randomNum = Math.floor(Math.random() * 26) + 1;
+        options.add(randomNum.toString());
       } else {
-        feedbackDiv.textContent = "Time's up! The correct answer was: " + q.expected;
-        feedbackDiv.style = errorStyle;
-        setTimeout(() => {
-          feedbackDiv.textContent = "";
-          currentQuestionIndex++;
-          showQuestion();
-        }, 800);
+        const randomLetter = this.alphabet[Math.floor(Math.random() * this.alphabet.length)];
+        options.add(randomLetter);
       }
+    }
+    return Array.from(options).sort(() => Math.random() - 0.5);
+  }
+
+  submitAnswer(userAnswer) {
+    if (this.hasAnswered) {
+      console.warn("submitAnswer called multiple times for the same question.");
+      return; // Prevent multiple submissions
+    }
+    this.hasAnswered = true;
+
+    clearTimeout(this.questionTimeout);
+    clearInterval(this.timerInterval);
+    this.timerBar.style.width = "0%";
+
+    const q = this.quizQuestions[this.currentQuestionIndex];
+    if (!q) {
+      console.error("Question is undefined. Current index:", this.currentQuestionIndex);
+      return;
+    }
+
+    console.log("Processing answer for question index:", this.currentQuestionIndex);
+    if (userAnswer === q.expected) {
+      console.log("Answer is correct. Waiting to advance...");
+      this.feedbackDiv.textContent = this.positiveMessages[Math.floor(Math.random() * this.positiveMessages.length)];
+      this.feedbackDiv.style = this.successStyle;
+      setTimeout(() => {
+        this.feedbackDiv.textContent = "";
+        this.currentQuestionIndex++;
+        console.log("Advancing to question index:", this.currentQuestionIndex);
+        this.showQuestion();
+      }, 300);
     } else {
-      if ((q.mode === "text" && userAnswer.toUpperCase() === q.expected.toUpperCase()) ||
-          (q.mode === "number" && userAnswer === q.expected)) {
-        feedbackDiv.textContent = positiveMessages[Math.floor(Math.random() * positiveMessages.length)];
-        feedbackDiv.style = successStyle;
-        setTimeout(() => {
-          feedbackDiv.textContent = "";
-          currentQuestionIndex++;
-          showQuestion();
-        }, 300);
-      } else {
-        feedbackDiv.textContent = "Oops, try again!";
-        feedbackDiv.style = errorStyle;
-      }
+      console.log("Answer is incorrect. Waiting to advance...");
+      this.feedbackDiv.textContent = `Wrong! The correct answer was: ${q.expected}`;
+      this.feedbackDiv.style = this.errorStyle;
+      setTimeout(() => {
+        this.feedbackDiv.textContent = "";
+        this.currentQuestionIndex++;
+        console.log("Advancing to question index:", this.currentQuestionIndex);
+        this.showQuestion();
+      }, 800);
     }
   }
 
-  function startTimer() {
-    clearTimeout(questionTimeout);
-    clearInterval(timerInterval);
+  startTimer() {
+    if (this.questionTimeout) {
+      clearTimeout(this.questionTimeout);
+      this.questionTimeout = null;
+    }
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+      this.timerInterval = null;
+    }
 
     const timerStart = Date.now();
-    const updateInterval = 50; // Update the progress bar every 50ms
-    const timerEnd = timerStart + timerDuration;
+    const timerEnd = timerStart + this.timerDuration;
 
-    timerInterval = setInterval(() => {
+    this.timerInterval = setInterval(() => {
       const now = Date.now();
       const remaining = Math.max(0, timerEnd - now);
-      timerBar.style.width = (remaining / timerDuration) * 100 + "%";
+      this.timerBar.style.width = (remaining / this.timerDuration) * 100 + "%";
 
       if (remaining === 0) {
-        clearInterval(timerInterval);
-        submitAnswer(true); // Auto-submit when time runs out
+        clearInterval(this.timerInterval);
+        this.timerInterval = null;
+        if (!this.hasAnswered) {
+          this.submitAnswer(null); // Auto-submit when time runs out
+        }
       }
-    }, updateInterval);
+    }, 50);
+
+    this.questionTimeout = setTimeout(() => {
+      if (!this.hasAnswered) {
+        clearInterval(this.timerInterval);
+        this.timerInterval = null;
+        this.submitAnswer(null);
+      }
+    }, this.timerDuration);
   }
 
-  function showQuestion() {
-    if (currentQuestionIndex >= quizQuestions.length) {
-      endQuiz();
-      return;
+  endQuiz() {
+    console.log("End of quiz reached. Total questions:", this.quizQuestions.length);
+    console.log("Final question index:", this.currentQuestionIndex);
+
+    if (this.questionTimeout) {
+      clearTimeout(this.questionTimeout);
+      this.questionTimeout = null;
+    }
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+      this.timerInterval = null;
     }
 
-    const q = quizQuestions[currentQuestionIndex];
-    questionArea.innerHTML = 
-      "<h2>Question " + (currentQuestionIndex + 1) + " of " + quizQuestions.length + "</h2>" +
-      "<p>" + q.prompt + "</p>";
-
-    answerInput.value = "";
-    answerInput.disabled = false;
-    answerInput.setAttribute("type", q.mode === "number" ? "number" : "text");
-    answerInput.setAttribute("inputmode", q.mode === "number" ? "numeric" : "text");
-    answerInput.focus();
-    startTimer();
-  }
-
-  answerForm.addEventListener("submit", function(e) {
-    e.preventDefault();
-    submitAnswer(false);
-  });
-
-  function endQuiz() {
-    quizContainer.classList.add("hidden");
-    resultDiv.classList.remove("hidden");
+    this.quizContainer.classList.add("hidden");
+    this.resultDiv.classList.remove("hidden");
     const endTime = new Date();
-    const timeDiff = (endTime - startTime) / 1000;
-    const avgTime = timeDiff / quizQuestions.length;
-    timeTakenP.innerHTML = "Completed in " + timeDiff.toFixed(2) + " seconds" +
-                             "<br>Average per question: " + avgTime.toFixed(2) + " seconds.";
+    const timeDiff = (endTime - this.startTime) / 1000;
+    const avgTime = timeDiff / this.quizQuestions.length;
+    this.timeTakenP.innerHTML = `Completed in ${timeDiff.toFixed(2)} seconds<br>Average per question: ${avgTime.toFixed(2)} seconds.`;
   }
+}
 
-  function startQuiz(count) {
-    if (isNaN(count) || count < 1) count = 1;
-    if (count > allQuestions.length) count = allQuestions.length;
-    shuffle(allQuestions);
-    quizQuestions = allQuestions.slice(0, count);
-    currentQuestionIndex = 0;
-    feedbackDiv.textContent = "";
-    startTime = new Date();
-    startScreen.classList.add("hidden");
-    resultDiv.classList.add("hidden");
-    quizContainer.classList.remove("hidden");
-    showQuestion();
-  }
-
-  if (startBtn) {
-    startBtn.addEventListener("click", function () {
-      const defaultCount = 10; // Default number of questions for start
-      startQuiz(defaultCount);
-    });
-  }
-
-  if (restartBtn) {
-    restartBtn.addEventListener("click", function () {
-      const defaultCount = 10; // Default number of questions for restart
-      startQuiz(defaultCount);
-    });
-  }
-
-  // Update the event listener to pass the correct count parameter
-  const questionButtons = document.querySelectorAll(".question-btn");
-  questionButtons.forEach(button => {
-    button.addEventListener("click", function () {
-      const count = parseInt(button.getAttribute("data-count"), 10);
-      startQuiz(count); // Pass the count parameter to startQuiz
-    });
+fetch("config.json")
+  .then(response => response.json())
+  .then(config => {
+    new QuizGame(config);
   });
-});

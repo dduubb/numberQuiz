@@ -1,0 +1,7 @@
+{
+  "alphabet": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+  "positiveMessages": ["Great!", "Awesome!", "You got it!", "Nice job!", "Correct!"],
+  "errorStyle": "color: red;",
+  "successStyle": "color: green;",
+  "timerDuration": 13000
+}
