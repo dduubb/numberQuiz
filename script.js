@@ -132,7 +132,7 @@ class QuizGame {
 
     this.questionArea.innerHTML = 
       `<h2>Question ${this.currentQuestionIndex + 1}</h2>
-       <p>${q.prompt}</p>`;
+       <p id="question-char">${q.prompt}</p>`;
 
     const options = this.generateOptions(q.expected, q.mode);
     const optionsHtml = options.map(option => 

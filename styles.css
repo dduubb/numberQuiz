@@ -17,10 +17,15 @@ button {
 }
 #question-area {
   text-align: center;
-  font-size: 3rem; /* Use rem for consistent scaling across devices */
   font-weight: bold;
   margin: 10px 0; /* Add spacing around the question */
 }
+
+#question-char {
+  font-size: xx-large;
+  width: 100%;/* Add spacing above the chart */
+}
+
 #feedback {
   position: fixed;
   top: 50%;
