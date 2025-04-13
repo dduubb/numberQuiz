@@ -16,7 +16,10 @@ button {
   margin-top: 10px;
 }
 #question-area {
-  margin-bottom: 15px;
+  text-align: center;
+  font-size: 3rem; /* Use rem for consistent scaling across devices */
+  font-weight: bold;
+  margin: 20px 0; /* Add spacing around the question */
 }
 #feedback {
   position: fixed;
