@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Alphabet Number Quiz - Fun Mode with Auto Submit</title>
+  <title>Alphabet Quiz - Auto Submit Mode</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -27,9 +27,6 @@
       margin-top: 10px;
       font-weight: bold;
     }
-    #start-screen label {
-      margin-right: 10px;
-    }
     /* Timer Bar Styles */
     #timer-container {
       width: 100%;
@@ -43,20 +40,35 @@
       background-color: #ff0000;
       transition: width 0.05s linear;
     }
+    /* Start screen styling */
+    #start-screen {
+      text-align: center;
+      margin-top: 50px;
+    }
+    #start-screen label {
+      margin-right: 10px;
+    }
+    #start-screen p {
+      font-size: 0.9em;
+      margin-bottom: 20px;
+    }
   </style>
 </head>
 <body>
-  <h1>Alphabet Number Quiz - Fun Mode with Auto Submit</h1>
-  <p>
-    Memorize the number for each letter in the English alphabet. You will see two types of questions: one shows a letter (answer with its number between 1–26) and one shows a number (answer with the corresponding letter). Choose how many questions you would like (max 52). Each question must be answered within <strong>6 seconds</strong>; if you don’t hit submit in time, your current answer is automatically submitted.
-  </p>
-
-  <!-- Start Screen with option to set number of questions -->
+  <!-- Start Screen with Explanation -->
   <div id="start-screen">
-    <label for="question-count">Number of Questions (1–52):</label>
+    <h1>Alphabet Quiz</h1>
+    <p>
+      Memorize the number for each letter of the English alphabet.
+      Two types of questions will be asked:
+      one displays a letter (answer with its number) and one displays a number (answer with its corresponding letter).
+      You have 3 seconds per question;
+      if you don't hit submit in time, your current answer is auto-submitted.
+    </p>
+    <label for="question-count">Questions (1–52):</label>
     <input id="question-count" type="number" min="1" max="52" value="26" />
     <br/>
-    <button id="start-btn">Start Quiz</button>
+    <button id="start-btn">Start</button>
   </div>
 
   <!-- Quiz Container -->
@@ -67,7 +79,6 @@
     </div>
     <div id="question-area"></div>
     <form id="answer-form">
-      <!-- The input type will be set dynamically -->
       <input id="answer-input" autocomplete="off" required />
       <button type="submit">Submit</button>
     </form>
@@ -86,9 +97,6 @@
       // Create the full list of questions (52 in total)
       const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
       const allQuestions = [];
-      // For each letter, create two question types:
-      // 1. Show a letter; answer is its numeric position (input type "number").
-      // 2. Show a number; answer is the corresponding letter (input type "text").
       for (let i = 0; i < alphabet.length; i++) {
         const letter = alphabet[i];
         const number = (i + 1).toString();
@@ -104,12 +112,12 @@
         });
       }
 
-      // Fun positive messages and error feedback styling.
+      // Feedback messages and styling.
       const positiveMessages = ["Great!", "Awesome!", "You got it!", "Nice job!", "Correct!"];
       const errorStyle = "color: red;";
       const successStyle = "color: green;";
 
-      // Fisher-Yates shuffle
+      // Fisher-Yates shuffle.
       function shuffle(array) {
         for (let i = array.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
@@ -117,7 +125,7 @@
         }
       }
 
-      // DOM element references
+      // DOM element references.
       const startScreen = document.getElementById("start-screen");
       const startBtn = document.getElementById("start-btn");
       const questionCountInput = document.getElementById("question-count");
@@ -134,172 +142,121 @@
       let quizQuestions = [];
       let currentQuestionIndex = 0;
       let startTime;
-      let questionTimeout; // holds the timeout for auto submission
-      let timerInterval;   // holds the interval for updating the timer bar
+      let questionTimeout;
+      let timerInterval;
+      const timerDuration = 3000; // 3 seconds per question
 
-      // Duration for each question in milliseconds
-      const timerDuration = 6000;
-
-      // This function will evaluate the current answer.
-      // The autoSubmitted flag is true if the answer comes from the timer expiration.
       function submitAnswer(autoSubmitted) {
         const q = quizQuestions[currentQuestionIndex];
         const userAnswer = answerInput.value.trim();
-        // Clear any running timer
         clearTimeout(questionTimeout);
         clearInterval(timerInterval);
-  
-        // If the answer is auto-submitted, we do not allow further tries.
+
         if (autoSubmitted) {
           answerInput.disabled = true;
-          if (q.mode === "text") {
-            if (userAnswer.toUpperCase() === q.expected.toUpperCase()) {
-              feedbackDiv.textContent = positiveMessages[Math.floor(Math.random() * positiveMessages.length)];
-              feedbackDiv.style = successStyle;
-              setTimeout(() => {
-                feedbackDiv.textContent = "";
-                currentQuestionIndex++;
-                showQuestion();
-              }, 300);
-            } else {
-              feedbackDiv.textContent = "Time's up! The correct answer was: " + q.expected;
-              feedbackDiv.style = errorStyle;
-              setTimeout(() => {
-                feedbackDiv.textContent = "";
-                currentQuestionIndex++;
-                showQuestion();
-              }, 800);
-            }
+          if ((q.mode === "text" && userAnswer.toUpperCase() === q.expected.toUpperCase()) ||
+              (q.mode === "number" && userAnswer === q.expected)) {
+            feedbackDiv.textContent = positiveMessages[Math.floor(Math.random() * positiveMessages.length)];
+            feedbackDiv.style = successStyle;
+            setTimeout(() => {
+              feedbackDiv.textContent = "";
+              currentQuestionIndex++;
+              showQuestion();
+            }, 300);
           } else {
-            if (userAnswer === q.expected) {
-              feedbackDiv.textContent = positiveMessages[Math.floor(Math.random() * positiveMessages.length)];
-              feedbackDiv.style = successStyle;
-              setTimeout(() => {
-                feedbackDiv.textContent = "";
-                currentQuestionIndex++;
-                showQuestion();
-              }, 300);
-            } else {
-              feedbackDiv.textContent = "Time's up! The correct answer was: " + q.expected;
-              feedbackDiv.style = errorStyle;
-              setTimeout(() => {
-                feedbackDiv.textContent = "";
-                currentQuestionIndex++;
-                showQuestion();
-              }, 800);
-            }
+            feedbackDiv.textContent = "Time's up! The correct answer was: " + q.expected;
+            feedbackDiv.style = errorStyle;
+            setTimeout(() => {
+              feedbackDiv.textContent = "";
+              currentQuestionIndex++;
+              showQuestion();
+            }, 800);
           }
         } else {
-          // Manual submission: if correct, move on; if not, let the user try again.
-          if (q.mode === "text") {
-            if (userAnswer.toUpperCase() === q.expected.toUpperCase()) {
-              feedbackDiv.textContent = positiveMessages[Math.floor(Math.random() * positiveMessages.length)];
-              feedbackDiv.style = successStyle;
-              setTimeout(() => {
-                feedbackDiv.textContent = "";
-                currentQuestionIndex++;
-                showQuestion();
-              }, 300);
-            } else {
-              feedbackDiv.textContent = "Oops, try again!";
-              feedbackDiv.style = errorStyle;
-              // No advancing the question; user can try again manually.
-            }
+          // Manual submission – allow multiple attempts if answer is wrong.
+          if ((q.mode === "text" && userAnswer.toUpperCase() === q.expected.toUpperCase()) ||
+              (q.mode === "number" && userAnswer === q.expected)) {
+            feedbackDiv.textContent = positiveMessages[Math.floor(Math.random() * positiveMessages.length)];
+            feedbackDiv.style = successStyle;
+            setTimeout(() => {
+              feedbackDiv.textContent = "";
+              currentQuestionIndex++;
+              showQuestion();
+            }, 300);
           } else {
-            if (userAnswer === q.expected) {
-              feedbackDiv.textContent = positiveMessages[Math.floor(Math.random() * positiveMessages.length)];
-              feedbackDiv.style = successStyle;
-              setTimeout(() => {
-                feedbackDiv.textContent = "";
-                currentQuestionIndex++;
-                showQuestion();
-              }, 300);
-            } else {
-              feedbackDiv.textContent = "Oops, try again!";
-              feedbackDiv.style = errorStyle;
-            }
+            feedbackDiv.textContent = "Oops, try again!";
+            feedbackDiv.style = errorStyle;
           }
         }
       }
 
-      // Start the countdown and update the burn down bar.
       function startTimer() {
         timerBar.style.width = "100%";
         const timerStart = Date.now();
         clearTimeout(questionTimeout);
         clearInterval(timerInterval);
-  
+
         timerInterval = setInterval(() => {
           let elapsed = Date.now() - timerStart;
           let remaining = timerDuration - elapsed;
           if (remaining < 0) remaining = 0;
           timerBar.style.width = (remaining / timerDuration * 100) + "%";
         }, 50);
-  
-        // When time is up, auto-submit the current answer.
+
         questionTimeout = setTimeout(() => {
           submitAnswer(true);
         }, timerDuration);
       }
-  
+
       function showQuestion() {
         if (currentQuestionIndex >= quizQuestions.length) {
           endQuiz();
           return;
         }
-  
+
         const q = quizQuestions[currentQuestionIndex];
         questionArea.innerHTML = 
           "<h2>Question " + (currentQuestionIndex + 1) + " of " + quizQuestions.length + "</h2>" +
-          "<p>Please provide the corresponding " + (q.mode === "number" ? "number" : "letter") +
-          " for: <strong>" + q.prompt + "</strong></p>";
-  
+          "<p>" + q.prompt + "</p>";
+
         answerInput.value = "";
         answerInput.disabled = false;
         answerInput.setAttribute("type", q.mode === "number" ? "number" : "text");
         answerInput.setAttribute("inputmode", q.mode === "number" ? "numeric" : "text");
         answerInput.focus();
-  
-        // Restart the timer for the new question.
         startTimer();
       }
-  
+
       answerForm.addEventListener("submit", function(e) {
         e.preventDefault();
-        // When the user submits manually, treat it as a normal (non-auto) submission.
         submitAnswer(false);
       });
-  
+
       function endQuiz() {
         quizContainer.classList.add("hidden");
         resultDiv.classList.remove("hidden");
         const endTime = new Date();
-        const timeDiff = (endTime - startTime) / 1000; // in seconds
-        const totalQuestions = quizQuestions.length;
-        const avgTime = timeDiff / totalQuestions;
-        timeTakenP.innerHTML = "You completed the quiz in " + timeDiff.toFixed(2) + " seconds." +
-                                 "<br>Average time per question: " + avgTime.toFixed(2) + " seconds.";
+        const timeDiff = (endTime - startTime) / 1000;
+        const avgTime = timeDiff / quizQuestions.length;
+        timeTakenP.innerHTML = "Completed in " + timeDiff.toFixed(2) + " seconds" +
+                                 "<br>Average per question: " + avgTime.toFixed(2) + " seconds.";
       }
-  
+
       function startQuiz() {
         let count = parseInt(questionCountInput.value, 10);
         if (isNaN(count) || count < 1) count = 1;
         if (count > allQuestions.length) count = allQuestions.length;
-  
         shuffle(allQuestions);
         quizQuestions = allQuestions.slice(0, count);
-  
         currentQuestionIndex = 0;
         feedbackDiv.textContent = "";
         startTime = new Date();
-  
         startScreen.classList.add("hidden");
         resultDiv.classList.add("hidden");
         quizContainer.classList.remove("hidden");
-  
         showQuestion();
       }
-  
+
       startBtn.addEventListener("click", startQuiz);
       restartBtn.addEventListener("click", startQuiz);
     });
