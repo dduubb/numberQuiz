@@ -274,10 +274,28 @@ class QuizGame {
 
     this.quizContainer.classList.add("hidden");
     this.resultDiv.classList.remove("hidden");
+
     const endTime = new Date();
     const timeDiff = (endTime - this.startTime) / 1000;
     const avgTime = timeDiff / this.quizQuestions.length;
-    this.timeTakenP.innerHTML = `Completed in ${timeDiff.toFixed(2)} seconds<br>Average per question: ${avgTime.toFixed(2)} seconds.`;
+
+    // Calculate correct answers
+    const correctAnswers = this.currentQuestionIndex;
+
+    // Retrieve high score from cookies
+    const highScore = parseInt(document.cookie.replace(/(?:(?:^|.*;\s*)highScore\s*\=\s*([^;]*).*$)|^.*$/, "$1")) || 0;
+
+    // Update high score if necessary
+    if (correctAnswers > highScore) {
+      document.cookie = `highScore=${correctAnswers}; expires=Fri, 31 Dec 9999 23:59:59 GMT; path=/`;
+    }
+
+    this.timeTakenP.innerHTML = `
+      Completed in ${timeDiff.toFixed(2)} seconds<br>
+      Average per question: ${avgTime.toFixed(2)} seconds.<br>
+      Correct answers: ${correctAnswers}<br>
+      High score: ${Math.max(correctAnswers, highScore)}
+    `;
   }
 }
 
