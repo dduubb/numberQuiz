@@ -12,7 +12,7 @@ body {
 }
 button {
   padding: 10px 20px;
-  font-size: 1em;
+  font-size: 3rem;
   margin-top: 10px;
 }
 #question-area {
@@ -83,7 +83,7 @@ button {
 .question-btn {
   width: 100%;
   height: 100%; /* Fill the available space */
-  font-size: 1.5em;
+  font-size: 3rem; /* Adjust font size for better visibility */
   padding: 0; /* Remove extra padding */
   box-sizing: border-box;
   background-color: #007BFF;
@@ -115,7 +115,7 @@ button {
   width: 100%;
   height: auto; /* Allow height to adjust dynamically */
   aspect-ratio: 1 / 1; /* Make buttons practically square */
-  font-size: 1.5em;
+  font-size: 3rem;
   padding: 10px; /* Add top and bottom padding */
   box-sizing: border-box;
   background-color: #28a745;
