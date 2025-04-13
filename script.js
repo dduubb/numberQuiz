@@ -190,6 +190,9 @@ class QuizGame {
       return;
     }
 
+    // Record the user's answer for the current question
+    q.userAnswer = userAnswer;
+
     console.log("Processing answer for question index:", this.currentQuestionIndex);
     if (userAnswer === q.expected) {
       console.log("Answer is correct. Waiting to advance...");
@@ -285,8 +288,8 @@ class QuizGame {
     const timeDiff = (endTime - this.startTime) / 1000;
     const avgTime = timeDiff / this.currentQuestionIndex; // Average time based on correct answers
 
-    // Calculate correct answers
-    const correctAnswers = this.currentQuestionIndex;
+    // Calculate correct answers by filtering only the correct ones
+    const correctAnswers = this.quizQuestions.slice(0, this.currentQuestionIndex).filter(q => q.userAnswer === q.expected).length;
 
     // Retrieve high scores and names from cookies
     const highScore = parseInt(document.cookie.replace(/(?:(?:^|.*;\s*)highScore\s*\=\s*([^;]*).*$)|^.*$/, "$1")) || 0;
